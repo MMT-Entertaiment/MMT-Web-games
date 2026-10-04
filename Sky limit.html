@@ -11,7 +11,9 @@
 html,body{margin:0;height:100%;background:#fff;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
 #game{position:fixed;inset:0;width:100%;height:100%}
 #last{position:fixed;top:40%;width:100%;text-align:center;font:bold 20px 'Google Sans',system-ui,sans-serif;color:#222}
-.skins{position:relative;isolation:isolate;box-sizing:border-box;width:116px;height:92px;padding:0 0 8px;display:flex;align-items:flex-end;justify-content:center;background:#1e6fe8;color:#fff;font:bold 18px 'Google Sans',system-ui,sans-serif;border:3px solid #000;border-radius:16px;cursor:pointer;-webkit-text-stroke:1px #000;paint-order:stroke fill;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}
+.skins{position:relative;isolation:isolate;box-sizing:border-box;width:min(116px,calc((100vw - 52px)/3));height:92px;padding:0 4px 8px;display:flex;align-items:flex-end;justify-content:center;background:#1e6fe8;color:#fff;font:bold 16px 'Google Sans',system-ui,sans-serif;border:3px solid #000;border-radius:16px;cursor:pointer;-webkit-text-stroke:1px #000;paint-order:stroke fill;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000}
+.skins{line-height:1.05;text-align:center}
+.xtr{background:#ffd23f}
 .skins:active{transform:scale(.96)}
 #stats{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));left:16px;display:flex;gap:8px}
 .stat{box-sizing:border-box;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 12px;background:#1e6fe8;border:3px solid #000;border-radius:14px;color:#fff;font:bold 16px 'Google Sans',system-ui,sans-serif;-webkit-text-stroke:.7px #000;paint-order:stroke fill;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;line-height:1.1}
@@ -82,6 +84,7 @@ html,body{margin:0;height:100%;background:#fff;overflow:hidden;touch-action:none
 <div id="menuBtns">
   <button class="skins" type="button" data-i18n="skins">Skins</button>
   <button class="skins upg" id="upBtn" type="button" data-i18n="upgrade">Upgrade</button>
+  <button class="skins xtr" id="xtrBtn" type="button" data-i18n="extremeMode">Extrem mode</button>
 </div>
 <button class="ui" id="openSet" type="button" aria-label="Paramètres"><svg viewBox="0 0 24 24"><path fill="#fff" stroke="#000" stroke-width="1.1" paint-order="stroke" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
 <div id="settings">
@@ -227,10 +230,10 @@ const MAXLV=10;
 let up={inv:0,td:0,ts:0,mg:0};
 try{const o=JSON.parse(localStorage.getItem('ballon_up')||'null');if(o)up={inv:o.inv|0,td:o.td|0,ts:o.ts|0,mg:o.mg|0}}catch(e){}
 function saveUp(){try{localStorage.setItem('ballon_up',JSON.stringify(up))}catch(e){}saveSkins()}
-const invDur=()=>5+up.inv;                 // invincibilité : 5 s + 1 s par niveau
-const turboDist=()=>1+.2*up.td;            // turbo : distance +20 % par niveau
-const turboSpd=()=>4+.3*up.ts;             // turbo : vitesse x4 + 0,3 par niveau
-const magDur=()=>8+2*up.mg;               // aimant : 8 s + 2 s par niveau
+const invDur=()=>5+(extreme?0:up.inv);                 // invincibilité : 5 s + 1 s par niveau
+const turboDist=()=>1+(extreme?0:.2*up.td);            // turbo : distance +20 % par niveau
+const turboSpd=()=>4+(extreme?0:.3*up.ts);             // turbo : vitesse x4 + 0,3 par niveau
+const magDur=()=>8+(extreme?0:2*up.mg);               // aimant : 8 s + 2 s par niveau
 const UPS=[
   {gk:'inv',col:'#2ecc40',icon:ICON_SH,rows:[{k:'inv',nk:'duration',base:100,fmt:l=>(5+l)+' s'}]},
   {gk:'turbo',col:'#ff9f1c',icon:ICON_BOLT,rows:[
@@ -265,16 +268,17 @@ document.getElementById('upBtn').onclick=()=>{upMsg.textContent='';renderUp();up
 document.getElementById('upBack').onclick=()=>{upPanel.style.display='none'};
 
 renderStats();
-const KEYS=["skins", "upgrade", "best", "coins", "settings", "back", "language", "reset", "resetAsk", "yes", "no", "resetDone", "validate", "wrongCode", "code", "notEnough", "equipped", "equip", "level", "inv", "turbo", "magnet", "duration", "speed", "space", "skin_blanc", "skin_rouge", "skin_jaune", "skin_vert", "skin_bleu", "skin_violet", "skin_rose", "skin_cyan", "skin_bleufonce", "skin_magenta", "skin_orange", "skin_marron", "skin_grisclair", "skin_grismoyen", "skin_grisfonce", "debug", "dl", "imp", "useSave", "noSave", "skinsCount", "badFile", "saveApplied"];
+const KEYS=["skins", "upgrade", "best", "coins", "settings", "back", "language", "reset", "resetAsk", "yes", "no", "resetDone", "validate", "wrongCode", "code", "notEnough", "equipped", "equip", "level", "inv", "turbo", "magnet", "duration", "speed", "space", "skin_blanc", "skin_rouge", "skin_jaune", "skin_vert", "skin_bleu", "skin_violet", "skin_rose", "skin_cyan", "skin_bleufonce", "skin_magenta", "skin_orange", "skin_marron", "skin_grisclair", "skin_grismoyen", "skin_grisfonce", "debug", "dl", "imp", "useSave", "noSave", "skinsCount", "badFile", "saveApplied", "extremeMode", "normalMode"];
 const TR={
-fr:["Skins", "Upgrade", "Meilleur score", "Pièces", "Paramètres", "Retour", "Langue", "Réinitialiser la progression", "Tout effacer (pièces, skins, améliorations, record) ?", "Oui", "Non", "Progression réinitialisée", "Valider", "Code incorrect", "Code", "Pas assez de pièces", "Équipé", "Équiper", "niveau", "Invincibilité", "Turbo", "Aimant", "Durée", "Vitesse", "Espace", "Blanc", "Rouge", "Jaune", "Vert", "Bleu", "Violet", "Rose", "Cyan", "Bleu foncé", "Magenta", "Orange", "Marron", "Gris clair", "Gris moyen", "Gris foncé", "Debug mode (dev only)", "Télécharger", "Importer", "Utiliser cette sauvegarde", "Aucune sauvegarde importée", "Nombre de skins", "Fichier invalide", "Sauvegarde appliquée"],
-en:["Skins", "Upgrade", "Best score", "Coins", "Settings", "Back", "Language", "Reset progress", "Erase everything (coins, skins, upgrades, best score)?", "Yes", "No", "Progress reset", "Confirm", "Wrong code", "Code", "Not enough coins", "Equipped", "Equip", "level", "Invincibility", "Turbo", "Magnet", "Duration", "Speed", "Space", "White", "Red", "Yellow", "Green", "Blue", "Purple", "Pink", "Cyan", "Dark blue", "Magenta", "Orange", "Brown", "Light gray", "Medium gray", "Dark gray", "Debug mode (dev only)", "Download", "Import", "Use this save", "No save imported", "Skins owned", "Invalid file", "Save applied"],
-it:["Skin", "Potenzia", "Miglior punteggio", "Monete", "Impostazioni", "Indietro", "Lingua", "Reimposta i progressi", "Cancellare tutto (monete, skin, potenziamenti, record)?", "Sì", "No", "Progressi reimpostati", "Conferma", "Codice errato", "Codice", "Monete insufficienti", "Equipaggiato", "Equipaggia", "livello", "Invincibilità", "Turbo", "Magnete", "Durata", "Velocità", "Spazio", "Bianco", "Rosso", "Giallo", "Verde", "Blu", "Viola", "Rosa", "Ciano", "Blu scuro", "Magenta", "Arancione", "Marrone", "Grigio chiaro", "Grigio medio", "Grigio scuro", "Debug mode (dev only)", "Scarica", "Importa", "Usa questo salvataggio", "Nessun salvataggio importato", "Numero di skin", "File non valido", "Salvataggio applicato"],
-es:["Skins", "Mejoras", "Mejor puntuación", "Monedas", "Ajustes", "Volver", "Idioma", "Restablecer progreso", "¿Borrar todo (monedas, skins, mejoras, récord)?", "Sí", "No", "Progreso restablecido", "Validar", "Código incorrecto", "Código", "No tienes suficientes monedas", "Equipado", "Equipar", "nivel", "Invencibilidad", "Turbo", "Imán", "Duración", "Velocidad", "Espacio", "Blanco", "Rojo", "Amarillo", "Verde", "Azul", "Morado", "Rosa", "Cian", "Azul oscuro", "Magenta", "Naranja", "Marrón", "Gris claro", "Gris medio", "Gris oscuro", "Debug mode (dev only)", "Descargar", "Importar", "Usar esta partida", "Ninguna partida importada", "Número de skins", "Archivo no válido", "Partida aplicada"],
-ru:["Скины", "Улучшения", "Лучший счёт", "Монеты", "Настройки", "Назад", "Язык", "Сбросить прогресс", "Стереть всё (монеты, скины, улучшения, рекорд)?", "Да", "Нет", "Прогресс сброшен", "Подтвердить", "Неверный код", "Код", "Недостаточно монет", "Надето", "Надеть", "уровень", "Неуязвимость", "Турбо", "Магнит", "Длительность", "Скорость", "Космос", "Белый", "Красный", "Жёлтый", "Зелёный", "Синий", "Фиолетовый", "Розовый", "Бирюзовый", "Тёмно-синий", "Маджента", "Оранжевый", "Коричневый", "Светло-серый", "Серый", "Тёмно-серый", "Debug mode (dev only)", "Скачать", "Импорт", "Использовать это сохранение", "Сохранение не загружено", "Количество скинов", "Неверный файл", "Сохранение применено"],
-ko:["스킨", "업그레이드", "최고 점수", "코인", "설정", "뒤로", "언어", "진행 상황 초기화", "모두 삭제할까요? (코인, 스킨, 업그레이드, 최고 기록)", "예", "아니요", "진행 상황이 초기화되었습니다", "확인", "잘못된 코드", "코드", "코인이 부족합니다", "장착됨", "장착", "레벨", "무적", "터보", "자석", "지속 시간", "속도", "우주", "흰색", "빨강", "노랑", "초록", "파랑", "보라", "분홍", "시안", "남색", "마젠타", "주황", "갈색", "연회색", "회색", "진회색", "Debug mode (dev only)", "다운로드", "가져오기", "이 저장 데이터 사용", "가져온 저장 데이터 없음", "스킨 수", "잘못된 파일", "저장 데이터가 적용되었습니다"],
-ja:["スキン", "アップグレード", "ベストスコア", "コイン", "設定", "戻る", "言語", "進行状況をリセット", "すべて消去しますか？（コイン、スキン、アップグレード、ベスト記録）", "はい", "いいえ", "進行状況をリセットしました", "確認", "コードが違います", "コード", "コインが足りません", "装備中", "装備", "レベル", "無敵", "ターボ", "マグネット", "持続時間", "速度", "宇宙", "白", "赤", "黄", "緑", "青", "紫", "ピンク", "シアン", "紺", "マゼンタ", "オレンジ", "茶", "ライトグレー", "グレー", "ダークグレー", "Debug mode (dev only)", "ダウンロード", "インポート", "このセーブを使う", "インポートされたセーブはありません", "スキン数", "無効なファイル", "セーブを適用しました"]
+fr:["Skins", "Upgrade", "Meilleur score", "Pièces", "Paramètres", "Retour", "Langue", "Réinitialiser la progression", "Tout effacer (pièces, skins, améliorations, record) ?", "Oui", "Non", "Progression réinitialisée", "Valider", "Code incorrect", "Code", "Pas assez de pièces", "Équipé", "Équiper", "niveau", "Invincibilité", "Turbo", "Aimant", "Durée", "Vitesse", "Espace", "Blanc", "Rouge", "Jaune", "Vert", "Bleu", "Violet", "Rose", "Cyan", "Bleu foncé", "Magenta", "Orange", "Marron", "Gris clair", "Gris moyen", "Gris foncé", "Debug mode (dev only)", "Télécharger", "Importer", "Utiliser cette sauvegarde", "Aucune sauvegarde importée", "Nombre de skins", "Fichier invalide", "Sauvegarde appliquée", "Extrem mode", "Normal mode"],
+en:["Skins", "Upgrade", "Best score", "Coins", "Settings", "Back", "Language", "Reset progress", "Erase everything (coins, skins, upgrades, best score)?", "Yes", "No", "Progress reset", "Confirm", "Wrong code", "Code", "Not enough coins", "Equipped", "Equip", "level", "Invincibility", "Turbo", "Magnet", "Duration", "Speed", "Space", "White", "Red", "Yellow", "Green", "Blue", "Purple", "Pink", "Cyan", "Dark blue", "Magenta", "Orange", "Brown", "Light gray", "Medium gray", "Dark gray", "Debug mode (dev only)", "Download", "Import", "Use this save", "No save imported", "Skins owned", "Invalid file", "Save applied", "Extreme mode", "Normal mode"],
+it:["Skin", "Potenzia", "Miglior punteggio", "Monete", "Impostazioni", "Indietro", "Lingua", "Reimposta i progressi", "Cancellare tutto (monete, skin, potenziamenti, record)?", "Sì", "No", "Progressi reimpostati", "Conferma", "Codice errato", "Codice", "Monete insufficienti", "Equipaggiato", "Equipaggia", "livello", "Invincibilità", "Turbo", "Magnete", "Durata", "Velocità", "Spazio", "Bianco", "Rosso", "Giallo", "Verde", "Blu", "Viola", "Rosa", "Ciano", "Blu scuro", "Magenta", "Arancione", "Marrone", "Grigio chiaro", "Grigio medio", "Grigio scuro", "Debug mode (dev only)", "Scarica", "Importa", "Usa questo salvataggio", "Nessun salvataggio importato", "Numero di skin", "File non valido", "Salvataggio applicato", "Modalità estrema", "Modalità normale"],
+es:["Skins", "Mejoras", "Mejor puntuación", "Monedas", "Ajustes", "Volver", "Idioma", "Restablecer progreso", "¿Borrar todo (monedas, skins, mejoras, récord)?", "Sí", "No", "Progreso restablecido", "Validar", "Código incorrecto", "Código", "No tienes suficientes monedas", "Equipado", "Equipar", "nivel", "Invencibilidad", "Turbo", "Imán", "Duración", "Velocidad", "Espacio", "Blanco", "Rojo", "Amarillo", "Verde", "Azul", "Morado", "Rosa", "Cian", "Azul oscuro", "Magenta", "Naranja", "Marrón", "Gris claro", "Gris medio", "Gris oscuro", "Debug mode (dev only)", "Descargar", "Importar", "Usar esta partida", "Ninguna partida importada", "Número de skins", "Archivo no válido", "Partida aplicada", "Modo extremo", "Modo normal"],
+ru:["Скины", "Улучшения", "Лучший счёт", "Монеты", "Настройки", "Назад", "Язык", "Сбросить прогресс", "Стереть всё (монеты, скины, улучшения, рекорд)?", "Да", "Нет", "Прогресс сброшен", "Подтвердить", "Неверный код", "Код", "Недостаточно монет", "Надето", "Надеть", "уровень", "Неуязвимость", "Турбо", "Магнит", "Длительность", "Скорость", "Космос", "Белый", "Красный", "Жёлтый", "Зелёный", "Синий", "Фиолетовый", "Розовый", "Бирюзовый", "Тёмно-синий", "Маджента", "Оранжевый", "Коричневый", "Светло-серый", "Серый", "Тёмно-серый", "Debug mode (dev only)", "Скачать", "Импорт", "Использовать это сохранение", "Сохранение не загружено", "Количество скинов", "Неверный файл", "Сохранение применено", "Экстрим", "Обычный"],
+ko:["스킨", "업그레이드", "최고 점수", "코인", "설정", "뒤로", "언어", "진행 상황 초기화", "모두 삭제할까요? (코인, 스킨, 업그레이드, 최고 기록)", "예", "아니요", "진행 상황이 초기화되었습니다", "확인", "잘못된 코드", "코드", "코인이 부족합니다", "장착됨", "장착", "레벨", "무적", "터보", "자석", "지속 시간", "속도", "우주", "흰색", "빨강", "노랑", "초록", "파랑", "보라", "분홍", "시안", "남색", "마젠타", "주황", "갈색", "연회색", "회색", "진회색", "Debug mode (dev only)", "다운로드", "가져오기", "이 저장 데이터 사용", "가져온 저장 데이터 없음", "스킨 수", "잘못된 파일", "저장 데이터가 적용되었습니다", "익스트림", "일반"],
+ja:["スキン", "アップグレード", "ベストスコア", "コイン", "設定", "戻る", "言語", "進行状況をリセット", "すべて消去しますか？（コイン、スキン、アップグレード、ベスト記録）", "はい", "いいえ", "進行状況をリセットしました", "確認", "コードが違います", "コード", "コインが足りません", "装備中", "装備", "レベル", "無敵", "ターボ", "マグネット", "持続時間", "速度", "宇宙", "白", "赤", "黄", "緑", "青", "紫", "ピンク", "シアン", "紺", "マゼンタ", "オレンジ", "茶", "ライトグレー", "グレー", "ダークグレー", "Debug mode (dev only)", "ダウンロード", "インポート", "このセーブを使う", "インポートされたセーブはありません", "スキン数", "無効なファイル", "セーブを適用しました", "エクストリーム", "ノーマル"]
 };
+let extreme=false;try{extreme=localStorage.getItem('ballon_extreme')==='1'}catch(e){}
 const T={};for(const l in TR){T[l]={};KEYS.forEach((k,i)=>T[l][k]=TR[l][i])}
 const LANGS=[['en','ENG'],['fr','FRA'],['it','ITA'],['es','ESP'],['ru','Рус'],['ko','한국어'],['ja','日本語']];
 let lang='fr';
@@ -301,7 +305,7 @@ const rstBtn=document.getElementById('rstBtn'),rstBox=document.getElementById('r
 rstBtn.onclick=()=>{rstMsg.textContent='';rstBtn.style.display='none';rstBox.style.display='flex'};
 document.getElementById('rstNo').onclick=()=>{rstBox.style.display='none';rstBtn.style.display=''};
 document.getElementById('rstYes').onclick=()=>{
-  wallet=0;own=['blanc'];eq='blanc';up={inv:0,td:0,ts:0,mg:0};best=0;
+  wallet=0;own=['blanc'];eq='blanc';up={inv:0,td:0,ts:0,mg:0};best=0;menuSpace=false;try{localStorage.setItem('ballon_menuspace','0')}catch(e){}
   try{localStorage.setItem('ballon_best','0')}catch(e){}
   saveUp();
   rstBox.style.display='none';rstBtn.style.display='';rstMsg.textContent=t('resetDone');
@@ -349,9 +353,22 @@ useSave.onclick=()=>{
   saveUp();
   saveMsg.style.color='#2a9d2a';saveMsg.textContent=t('saveApplied');
 };
+
+// ----- Mode extrême / normal -----
+const xtrBtn=document.getElementById('xtrBtn');
+const SVG_FLAME="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M32 4C40 16 52 24 52 40C52 52 43 60 32 60C21 60 12 52 12 40C12 32 17 28 20 22C22 30 26 32 28 30C26 20 28 10 32 4Z' fill='#e63946' stroke='black' stroke-width='4' stroke-linejoin='round'/></svg>";
+const SVG_CLOUD="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M18 46C10 46 6 40 8 34C10 29 15 27 19 28C20 20 28 16 35 19C40 15 49 18 50 26C57 26 60 34 56 40C54 44 50 46 46 46Z' fill='white' stroke='black' stroke-width='4' stroke-linejoin='round'/></svg>";
+function syncXtr(){
+  xtrBtn.dataset.i18n=extreme?'normalMode':'extremeMode';
+  xtrBtn.style.setProperty('--ball','url("data:image/svg+xml,'+encodeURIComponent(extreme?SVG_CLOUD:SVG_FLAME)+'")');
+  applyLang();
+}
+xtrBtn.onclick=()=>{extreme=!extreme;try{localStorage.setItem('ballon_extreme',extreme?'1':'0')}catch(e){}syncXtr()};
+syncXtr();
 applyLang();
 
 // ----- Fond du menu : ciel + ballons à différentes distances -----
+let menuSpace=false;try{menuSpace=localStorage.getItem('ballon_menuspace')==='1'}catch(e){}
 const MB=[];
 let mprev=performance.now();
 function newMB(first){
@@ -363,9 +380,15 @@ MB.sort((a,b)=>a.z-b.z);
 function menuLoop(now){
   if(state!=='menu')return;
   const dt=Math.min(.05,(now-mprev)/1000);mprev=now;
-  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#7cc4ff');g.addColorStop(1,'#d6f0ff');
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,extreme?'#1a0003':menuSpace?'#03030f':'#7cc4ff');g.addColorStop(1,extreme?'#7a0f18':menuSpace?'#1a1450':'#d6f0ff');
   ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-  if(IMG.width){
+  if(extreme||menuSpace){
+    // mode extrême (espace rouge) ou mort dans l'espace : fond d'étoiles qui défilent, sans ballon
+    ctx.fillStyle='#fff';
+    for(const st of STARS){st.y+=st.z*400*dt*.3/H;if(st.y>1){st.y=0;st.x=Math.random()}ctx.globalAlpha=st.z;ctx.fillRect(st.x*W,st.y*H,st.z*2.5,st.z*2.5)}
+    ctx.globalAlpha=1;
+  }else if(IMG.width){
     let respawn=false;
     for(let i=0;i<MB.length;i++){
       let b=MB[i];b.y-=(18+b.z*80)*dt;   // les plus proches défilent plus vite
@@ -421,7 +444,7 @@ function start(){
   requestAnimationFrame(loop);
 }
 function end(){
-  state='menu';menuBtns.style.display='';stats.style.display='';mprev=performance.now();requestAnimationFrame(menuLoop);openSet.style.display='';dbg.style.display='none';dbgCoins.style.display='none';
+  state='menu';menuSpace=alt>=SM();try{localStorage.setItem('ballon_menuspace',menuSpace?'1':'0')}catch(e){}menuBtns.style.display='';stats.style.display='';mprev=performance.now();requestAnimationFrame(menuLoop);openSet.style.display='';dbg.style.display='none';dbgCoins.style.display='none';
   if(alt>best){best=alt;try{localStorage.setItem('ballon_best',best)}catch(e){}}
   wallet+=coinsN;saveSkins();
 }
@@ -439,6 +462,14 @@ addEventListener('keydown',e=>{if(state==='play'){if(e.key==='ArrowLeft')tx-=40;
 
 function spawn(y){
   const r=Math.random(),len=rnd(60,160),dir=Math.random()<.5?-1:1;
+  if(extreme){
+    // plus de rouges : les bleus bougent comme les violets (zone réduite)
+    if(r<.9){
+      const amp=rnd(45,90),x0=Math.max(len/2+amp,Math.min(W-len/2-amp,rnd(len/2+amp,W-len/2-amp)));
+      bars.push({x:x0,x0,amp,y,len,a:0,w:12,c:r<.45?FIX:PUR,vx:dir*rnd(80,170)});
+    }else{const rl=rnd(36,64);bars.push({x:rnd(rl/2,W-rl/2),y,len:rl,a:0,w:12,c:'#fff',vx:0,rb:true})}
+    return;
+  }
   if(r<.3)bars.push({x:rnd(len/2,W-len/2),y,len,a:0,w:10+((Math.random()*8)|0),c:FIX,vx:0});
   else if(r<.6)bars.push({x:rnd(len/2,W-len/2),y,len,a:0,w:12,c:MOV,vx:dir*rnd(80,170)});
   else if(r<.9){
@@ -461,7 +492,7 @@ function loop(now){
   if(mag>0){mag-=dt;if(mag<=0){mag=0;if(magQ>0){magQ--;mag=magDur()}}}
   const dm=speed*dt/20;alt+=dm;
   while(alt>=(kmDone+1)*1000){kmDone++;coinsN+=100}
-  if(!spaceShown&&alt>=SPACE_M){spaceShown=true;banT=2.5}
+  if(!spaceShown&&alt>=SM()){spaceShown=true;banT=2.5}
   if(banT>0)banT-=dt;
   for(const st of STARS){st.y+=st.z*speed*dt*.3/H;if(st.y>1){st.y=0;st.x=Math.random()}}
   if(mega>0){mega-=dm;if(mega<=0){mega=0;if(megaQ>0){megaQ--;mega=MEGA_M}}}
@@ -474,11 +505,12 @@ function loop(now){
     spawnY=0;spawn(-20);
     const r=Math.random(),py0=-20-gap/2;
     // power-up placé à mi-chemin entre deux pièges, sans piège double à côté
-    if(r<.15)pw.push({x:rnd(30,W-30),y:py0,s:40,t:'g'});
-    else if(r<.23)pw.push({x:rnd(30,W-30),y:py0,s:40,t:'o'});
-    else if(r<.3)pw.push({x:rnd(30,W-30),y:py0,s:40,t:'s'});
-    else if(r<.38)pw.push({x:rnd(30,W-30),y:py0,s:40,t:'a'});
-    else if(r<.85){
+    const TH=extreme?[.06,.10,.30,.33,.8]:[.15,.23,.30,.38,.85];   // g, o, malus, aimant, pièces
+    if(r<TH[0])pw.push({x:rnd(30,W-30),y:py0,s:40,t:'g'});
+    else if(r<TH[1])pw.push({x:rnd(30,W-30),y:py0,s:40,t:'o'});
+    else if(r<TH[2])pw.push({x:rnd(30,W-30),y:py0,s:40,t:'s'});
+    else if(r<TH[3])pw.push({x:rnd(30,W-30),y:py0,s:40,t:'a'});
+    else if(r<TH[4]){
       // colonne de pièces entre deux pièges
       const n=3+((Math.random()*3)|0),x0=rnd(50,W-50);
       for(let i=0;i<n;i++)cn.push({x:Math.max(20,Math.min(W-20,x0+Math.sin(i*1.2)*25)),y:py0+(i-(n-1)/2)*30});
@@ -527,13 +559,14 @@ function rainbow(){
   octx.globalCompositeOperation='source-over';
   return OFF;
 }
-const SPACE_M=10000;                       // entrée dans l'espace : 10 km
+const SM=()=>extreme?100000:10000;                       // entrée dans l'espace : 10 km
 const STARS=Array.from({length:70},()=>({x:Math.random(),y:Math.random(),z:.3+Math.random()*.7}));
-const spaceF=()=>Math.max(0,Math.min(1,(alt-(SPACE_M-1000))/1000)); // fondu ciel -> espace sur le dernier km
+const spaceF=()=>Math.max(0,Math.min(1,(alt-(SM()-1000))/1000)); // fondu ciel -> espace sur le dernier km
 function draw(){
-  const f=spaceF(),m=(a,b)=>a.map((v,i)=>Math.round(v+(b[i]-v)*f)).join(',');
+  // normal : ciel -> espace à 10 km ; extrême : espace dès le départ, qui rougit à 100 km
+  const ex=extreme,f=ex?1:spaceF(),rf=ex?spaceF():0,m=(a,b,k)=>a.map((v,i)=>Math.round(v+(b[i]-v)*k)).join(',');
   const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'rgb('+m([124,196,255],[3,3,15])+')');g.addColorStop(1,'rgb('+m([214,240,255],[26,20,80])+')');
+  g.addColorStop(0,'rgb('+(ex?m([3,3,15],[22,0,2],rf):m([124,196,255],[3,3,15],f))+')');g.addColorStop(1,'rgb('+(ex?m([26,20,80],[130,12,24],rf):m([214,240,255],[26,20,80],f))+')');
   ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
   if(f>0){ctx.fillStyle='#fff';for(const st of STARS){ctx.globalAlpha=f*st.z;ctx.fillRect(st.x*W,st.y*H,st.z*2.5,st.z*2.5)}ctx.globalAlpha=1}
   ctx.lineCap='round';
