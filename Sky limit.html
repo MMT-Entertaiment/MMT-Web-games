@@ -54,6 +54,13 @@ html,body{margin:0;height:100%;background:#fff;overflow:hidden;touch-action:none
 .sk small{font-size:13px}
 .sk.eq{background:#c9f7c9}
 .dot{display:inline-block;width:14px;height:14px;border-radius:50%;background:#ffd23f;border:2px solid #b8860b;box-sizing:border-box;vertical-align:-2px}
+.ui.green{background:#2ecc40}
+.ui:disabled{opacity:.45;cursor:default}
+.saveRow{display:flex;gap:10px;width:min(100%,340px)}
+.saveRow .ui{flex:1;padding:12px 10px;font-size:17px}
+.infoz{box-sizing:border-box;width:min(100%,300px);padding:10px 16px;background:#fff;color:#222;border:3px solid #000;border-radius:16px;font-weight:bold;text-align:center}
+.irow{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
+#saveMsg{min-height:20px;font-weight:bold;text-align:center}
 #langSel{font:bold 18px 'Google Sans',system-ui,sans-serif;padding:8px 10px;border:3px solid #000;border-radius:12px;background:#fff;color:#222}
 #rstBox{display:none;flex-direction:column;align-items:center;gap:10px;max-width:290px;font-weight:bold;text-align:center}
 .rstRow{display:flex;gap:10px}
@@ -79,19 +86,27 @@ html,body{margin:0;height:100%;background:#fff;overflow:hidden;touch-action:none
 <button class="ui" id="openSet" type="button" aria-label="Paramètres"><svg viewBox="0 0 24 24"><path fill="#fff" stroke="#000" stroke-width="1.1" paint-order="stroke" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
 <div id="settings">
   <h2 data-i18n="settings">Paramètres</h2>
-  <label class="row"><span data-i18n="debug">Debug mode</span><button class="sw" id="swDebug" type="button" role="switch" aria-checked="false"></button></label>
-  <div id="codeBox">
-    <input id="codeIn" type="password" data-i18n-ph="code" placeholder="Code" autocomplete="off" autocapitalize="off">
-    <button class="ui sm" id="codeOk" type="button" data-i18n="validate">Valider</button>
-    <div id="codeErr"></div>
-  </div>
   <label class="row"><span data-i18n="language">Langue</span><select id="langSel"></select></label>
+  <div class="saveRow">
+    <button class="ui green" id="saveDl" type="button" data-i18n="dl">Télécharger</button>
+    <button class="ui" id="saveImp" type="button" data-i18n="imp">Importer</button>
+  </div>
+  <input type="file" id="saveFile" style="display:none">
+  <div class="infoz" id="infoSave"></div>
+  <button class="ui" id="useSave" type="button" data-i18n="useSave" disabled>Utiliser cette sauvegarde</button>
+  <div id="saveMsg"></div>
   <button class="ui red" id="rstBtn" type="button" data-i18n="reset">Réinitialiser la progression</button>
   <div id="rstBox">
     <span data-i18n="resetAsk">Tout effacer ?</span>
     <div class="rstRow"><button class="ui sm red" id="rstYes" type="button" data-i18n="yes">Oui</button><button class="ui sm" id="rstNo" type="button" data-i18n="no">Non</button></div>
   </div>
   <div id="rstMsg"></div>
+  <label class="row"><span data-i18n="debug">Debug mode (dev only)</span><button class="sw" id="swDebug" type="button" role="switch" aria-checked="false"></button></label>
+  <div id="codeBox">
+    <input id="codeIn" type="password" data-i18n-ph="code" placeholder="Code" autocomplete="off" autocapitalize="off">
+    <button class="ui sm" id="codeOk" type="button" data-i18n="validate">Valider</button>
+    <div id="codeErr"></div>
+  </div>
   <button class="ui" id="backSet" type="button" data-i18n="back">Retour</button>
 </div>
 <div id="skinsPanel">
@@ -250,15 +265,15 @@ document.getElementById('upBtn').onclick=()=>{upMsg.textContent='';renderUp();up
 document.getElementById('upBack').onclick=()=>{upPanel.style.display='none'};
 
 renderStats();
-const KEYS=["skins", "upgrade", "best", "coins", "settings", "back", "language", "reset", "resetAsk", "yes", "no", "resetDone", "validate", "wrongCode", "code", "notEnough", "equipped", "equip", "level", "inv", "turbo", "magnet", "duration", "speed", "space", "skin_blanc", "skin_rouge", "skin_jaune", "skin_vert", "skin_bleu", "skin_violet", "skin_rose", "skin_cyan", "skin_bleufonce", "skin_magenta", "skin_orange", "skin_marron", "skin_grisclair", "skin_grismoyen", "skin_grisfonce", "debug"];
+const KEYS=["skins", "upgrade", "best", "coins", "settings", "back", "language", "reset", "resetAsk", "yes", "no", "resetDone", "validate", "wrongCode", "code", "notEnough", "equipped", "equip", "level", "inv", "turbo", "magnet", "duration", "speed", "space", "skin_blanc", "skin_rouge", "skin_jaune", "skin_vert", "skin_bleu", "skin_violet", "skin_rose", "skin_cyan", "skin_bleufonce", "skin_magenta", "skin_orange", "skin_marron", "skin_grisclair", "skin_grismoyen", "skin_grisfonce", "debug", "dl", "imp", "useSave", "noSave", "skinsCount", "badFile", "saveApplied"];
 const TR={
-fr:["Skins", "Upgrade", "Meilleur score", "Pièces", "Paramètres", "Retour", "Langue", "Réinitialiser la progression", "Tout effacer (pièces, skins, améliorations, record) ?", "Oui", "Non", "Progression réinitialisée", "Valider", "Code incorrect", "Code", "Pas assez de pièces", "Équipé", "Équiper", "niveau", "Invincibilité", "Turbo", "Aimant", "Durée", "Vitesse", "Espace", "Blanc", "Rouge", "Jaune", "Vert", "Bleu", "Violet", "Rose", "Cyan", "Bleu foncé", "Magenta", "Orange", "Marron", "Gris clair", "Gris moyen", "Gris foncé", "Debug mode"],
-en:["Skins", "Upgrade", "Best score", "Coins", "Settings", "Back", "Language", "Reset progress", "Erase everything (coins, skins, upgrades, best score)?", "Yes", "No", "Progress reset", "Confirm", "Wrong code", "Code", "Not enough coins", "Equipped", "Equip", "level", "Invincibility", "Turbo", "Magnet", "Duration", "Speed", "Space", "White", "Red", "Yellow", "Green", "Blue", "Purple", "Pink", "Cyan", "Dark blue", "Magenta", "Orange", "Brown", "Light gray", "Medium gray", "Dark gray", "Debug mode"],
-it:["Skin", "Potenzia", "Miglior punteggio", "Monete", "Impostazioni", "Indietro", "Lingua", "Reimposta i progressi", "Cancellare tutto (monete, skin, potenziamenti, record)?", "Sì", "No", "Progressi reimpostati", "Conferma", "Codice errato", "Codice", "Monete insufficienti", "Equipaggiato", "Equipaggia", "livello", "Invincibilità", "Turbo", "Magnete", "Durata", "Velocità", "Spazio", "Bianco", "Rosso", "Giallo", "Verde", "Blu", "Viola", "Rosa", "Ciano", "Blu scuro", "Magenta", "Arancione", "Marrone", "Grigio chiaro", "Grigio medio", "Grigio scuro", "Debug mode"],
-es:["Skins", "Mejoras", "Mejor puntuación", "Monedas", "Ajustes", "Volver", "Idioma", "Restablecer progreso", "¿Borrar todo (monedas, skins, mejoras, récord)?", "Sí", "No", "Progreso restablecido", "Validar", "Código incorrecto", "Código", "No tienes suficientes monedas", "Equipado", "Equipar", "nivel", "Invencibilidad", "Turbo", "Imán", "Duración", "Velocidad", "Espacio", "Blanco", "Rojo", "Amarillo", "Verde", "Azul", "Morado", "Rosa", "Cian", "Azul oscuro", "Magenta", "Naranja", "Marrón", "Gris claro", "Gris medio", "Gris oscuro", "Debug mode"],
-ru:["Скины", "Улучшения", "Лучший счёт", "Монеты", "Настройки", "Назад", "Язык", "Сбросить прогресс", "Стереть всё (монеты, скины, улучшения, рекорд)?", "Да", "Нет", "Прогресс сброшен", "Подтвердить", "Неверный код", "Код", "Недостаточно монет", "Надето", "Надеть", "уровень", "Неуязвимость", "Турбо", "Магнит", "Длительность", "Скорость", "Космос", "Белый", "Красный", "Жёлтый", "Зелёный", "Синий", "Фиолетовый", "Розовый", "Бирюзовый", "Тёмно-синий", "Маджента", "Оранжевый", "Коричневый", "Светло-серый", "Серый", "Тёмно-серый", "Debug mode"],
-ko:["스킨", "업그레이드", "최고 점수", "코인", "설정", "뒤로", "언어", "진행 상황 초기화", "모두 삭제할까요? (코인, 스킨, 업그레이드, 최고 기록)", "예", "아니요", "진행 상황이 초기화되었습니다", "확인", "잘못된 코드", "코드", "코인이 부족합니다", "장착됨", "장착", "레벨", "무적", "터보", "자석", "지속 시간", "속도", "우주", "흰색", "빨강", "노랑", "초록", "파랑", "보라", "분홍", "시안", "남색", "마젠타", "주황", "갈색", "연회색", "회색", "진회색", "Debug mode"],
-ja:["スキン", "アップグレード", "ベストスコア", "コイン", "設定", "戻る", "言語", "進行状況をリセット", "すべて消去しますか？（コイン、スキン、アップグレード、ベスト記録）", "はい", "いいえ", "進行状況をリセットしました", "確認", "コードが違います", "コード", "コインが足りません", "装備中", "装備", "レベル", "無敵", "ターボ", "マグネット", "持続時間", "速度", "宇宙", "白", "赤", "黄", "緑", "青", "紫", "ピンク", "シアン", "紺", "マゼンタ", "オレンジ", "茶", "ライトグレー", "グレー", "ダークグレー", "Debug mode"]
+fr:["Skins", "Upgrade", "Meilleur score", "Pièces", "Paramètres", "Retour", "Langue", "Réinitialiser la progression", "Tout effacer (pièces, skins, améliorations, record) ?", "Oui", "Non", "Progression réinitialisée", "Valider", "Code incorrect", "Code", "Pas assez de pièces", "Équipé", "Équiper", "niveau", "Invincibilité", "Turbo", "Aimant", "Durée", "Vitesse", "Espace", "Blanc", "Rouge", "Jaune", "Vert", "Bleu", "Violet", "Rose", "Cyan", "Bleu foncé", "Magenta", "Orange", "Marron", "Gris clair", "Gris moyen", "Gris foncé", "Debug mode (dev only)", "Télécharger", "Importer", "Utiliser cette sauvegarde", "Aucune sauvegarde importée", "Nombre de skins", "Fichier invalide", "Sauvegarde appliquée"],
+en:["Skins", "Upgrade", "Best score", "Coins", "Settings", "Back", "Language", "Reset progress", "Erase everything (coins, skins, upgrades, best score)?", "Yes", "No", "Progress reset", "Confirm", "Wrong code", "Code", "Not enough coins", "Equipped", "Equip", "level", "Invincibility", "Turbo", "Magnet", "Duration", "Speed", "Space", "White", "Red", "Yellow", "Green", "Blue", "Purple", "Pink", "Cyan", "Dark blue", "Magenta", "Orange", "Brown", "Light gray", "Medium gray", "Dark gray", "Debug mode (dev only)", "Download", "Import", "Use this save", "No save imported", "Skins owned", "Invalid file", "Save applied"],
+it:["Skin", "Potenzia", "Miglior punteggio", "Monete", "Impostazioni", "Indietro", "Lingua", "Reimposta i progressi", "Cancellare tutto (monete, skin, potenziamenti, record)?", "Sì", "No", "Progressi reimpostati", "Conferma", "Codice errato", "Codice", "Monete insufficienti", "Equipaggiato", "Equipaggia", "livello", "Invincibilità", "Turbo", "Magnete", "Durata", "Velocità", "Spazio", "Bianco", "Rosso", "Giallo", "Verde", "Blu", "Viola", "Rosa", "Ciano", "Blu scuro", "Magenta", "Arancione", "Marrone", "Grigio chiaro", "Grigio medio", "Grigio scuro", "Debug mode (dev only)", "Scarica", "Importa", "Usa questo salvataggio", "Nessun salvataggio importato", "Numero di skin", "File non valido", "Salvataggio applicato"],
+es:["Skins", "Mejoras", "Mejor puntuación", "Monedas", "Ajustes", "Volver", "Idioma", "Restablecer progreso", "¿Borrar todo (monedas, skins, mejoras, récord)?", "Sí", "No", "Progreso restablecido", "Validar", "Código incorrecto", "Código", "No tienes suficientes monedas", "Equipado", "Equipar", "nivel", "Invencibilidad", "Turbo", "Imán", "Duración", "Velocidad", "Espacio", "Blanco", "Rojo", "Amarillo", "Verde", "Azul", "Morado", "Rosa", "Cian", "Azul oscuro", "Magenta", "Naranja", "Marrón", "Gris claro", "Gris medio", "Gris oscuro", "Debug mode (dev only)", "Descargar", "Importar", "Usar esta partida", "Ninguna partida importada", "Número de skins", "Archivo no válido", "Partida aplicada"],
+ru:["Скины", "Улучшения", "Лучший счёт", "Монеты", "Настройки", "Назад", "Язык", "Сбросить прогресс", "Стереть всё (монеты, скины, улучшения, рекорд)?", "Да", "Нет", "Прогресс сброшен", "Подтвердить", "Неверный код", "Код", "Недостаточно монет", "Надето", "Надеть", "уровень", "Неуязвимость", "Турбо", "Магнит", "Длительность", "Скорость", "Космос", "Белый", "Красный", "Жёлтый", "Зелёный", "Синий", "Фиолетовый", "Розовый", "Бирюзовый", "Тёмно-синий", "Маджента", "Оранжевый", "Коричневый", "Светло-серый", "Серый", "Тёмно-серый", "Debug mode (dev only)", "Скачать", "Импорт", "Использовать это сохранение", "Сохранение не загружено", "Количество скинов", "Неверный файл", "Сохранение применено"],
+ko:["스킨", "업그레이드", "최고 점수", "코인", "설정", "뒤로", "언어", "진행 상황 초기화", "모두 삭제할까요? (코인, 스킨, 업그레이드, 최고 기록)", "예", "아니요", "진행 상황이 초기화되었습니다", "확인", "잘못된 코드", "코드", "코인이 부족합니다", "장착됨", "장착", "레벨", "무적", "터보", "자석", "지속 시간", "속도", "우주", "흰색", "빨강", "노랑", "초록", "파랑", "보라", "분홍", "시안", "남색", "마젠타", "주황", "갈색", "연회색", "회색", "진회색", "Debug mode (dev only)", "다운로드", "가져오기", "이 저장 데이터 사용", "가져온 저장 데이터 없음", "스킨 수", "잘못된 파일", "저장 데이터가 적용되었습니다"],
+ja:["スキン", "アップグレード", "ベストスコア", "コイン", "設定", "戻る", "言語", "進行状況をリセット", "すべて消去しますか？（コイン、スキン、アップグレード、ベスト記録）", "はい", "いいえ", "進行状況をリセットしました", "確認", "コードが違います", "コード", "コインが足りません", "装備中", "装備", "レベル", "無敵", "ターボ", "マグネット", "持続時間", "速度", "宇宙", "白", "赤", "黄", "緑", "青", "紫", "ピンク", "シアン", "紺", "マゼンタ", "オレンジ", "茶", "ライトグレー", "グレー", "ダークグレー", "Debug mode (dev only)", "ダウンロード", "インポート", "このセーブを使う", "インポートされたセーブはありません", "スキン数", "無効なファイル", "セーブを適用しました"]
 };
 const T={};for(const l in TR){T[l]={};KEYS.forEach((k,i)=>T[l][k]=TR[l][i])}
 const LANGS=[['en','ENG'],['fr','FRA'],['it','ITA'],['es','ESP'],['ru','Рус'],['ko','한국어'],['ja','日本語']];
@@ -275,10 +290,11 @@ function applyLang(){
   document.querySelectorAll('[data-i18n]').forEach(e=>{e.textContent=t(e.dataset.i18n)});
   document.querySelectorAll('[data-i18n-ph]').forEach(e=>{e.placeholder=t(e.dataset.i18nPh)});
   langSel.value=lang;
+  refreshInfo();
 }
 langSel.onchange=()=>{
   lang=langSel.value;try{localStorage.setItem('ballon_lang',lang)}catch(e){}
-  applyLang();document.getElementById('codeErr').textContent='';document.getElementById('rstMsg').textContent='';
+  applyLang();document.getElementById('codeErr').textContent='';document.getElementById('rstMsg').textContent='';saveMsg.textContent='';
 };
 // réinitialisation de la progression (pièces, skins, améliorations, record) ; langue et debug conservés
 const rstBtn=document.getElementById('rstBtn'),rstBox=document.getElementById('rstBox'),rstMsg=document.getElementById('rstMsg');
@@ -289,6 +305,49 @@ document.getElementById('rstYes').onclick=()=>{
   try{localStorage.setItem('ballon_best','0')}catch(e){}
   saveUp();
   rstBox.style.display='none';rstBtn.style.display='';rstMsg.textContent=t('resetDone');
+};
+
+// ----- Sauvegarde : export / import (.sklmtsv) -----
+let pending=null;
+const saveFile=document.getElementById('saveFile'),infoSave=document.getElementById('infoSave'),useSave=document.getElementById('useSave'),saveMsg=document.getElementById('saveMsg');
+function refreshInfo(){
+  if(!pending){infoSave.textContent=t('noSave');return}
+  const row=(a,b)=>'<div class="irow"><span>'+a+'</span><b>'+b+'</b></div>';
+  infoSave.innerHTML=row(t('best'),pending.best+' m')+row(t('coins'),pending.wallet+' <span class="dot"></span>')+row(t('skinsCount'),pending.own.length+' / '+SKINS.length);
+}
+document.getElementById('saveDl').onclick=()=>{
+  const data={game:'ballon',v:1,wallet,own,eq,up,best:best|0};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/octet-stream'}));
+  a.download='save.sklmtsv';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+};
+document.getElementById('saveImp').onclick=()=>{saveFile.value='';saveFile.click()};
+saveFile.onchange=()=>{
+  const f=saveFile.files[0];if(!f)return;
+  saveMsg.textContent='';pending=null;useSave.disabled=true;
+  const bad=()=>{saveMsg.style.color='#e63946';saveMsg.textContent=t('badFile');refreshInfo()};
+  if(!/\.sklmtsv$/i.test(f.name))return bad();
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const o=JSON.parse(r.result);
+      if(!o||o.game!=='ballon')throw 0;
+      const ids=SKINS.map(k=>k.id),lv=v=>Math.max(0,Math.min(MAXLV,v|0));
+      const own2=[...new Set(['blanc',...(Array.isArray(o.own)?o.own:[]).filter(i=>ids.includes(i))])],u=o.up||{};
+      pending={wallet:Math.max(0,Math.floor(+o.wallet)||0),own:own2,eq:own2.includes(o.eq)?o.eq:'blanc',best:Math.max(0,Math.floor(+o.best)||0),
+        up:{inv:lv(u.inv),td:lv(u.td),ts:lv(u.ts),mg:lv(u.mg)}};
+      useSave.disabled=false;refreshInfo();
+    }catch(e){bad()}
+  };
+  r.onerror=bad;r.readAsText(f);
+};
+useSave.onclick=()=>{
+  if(!pending)return;
+  wallet=pending.wallet;own=pending.own.slice();eq=pending.eq;up=Object.assign({},pending.up);best=pending.best;
+  try{localStorage.setItem('ballon_best',String(best))}catch(e){}
+  saveUp();
+  saveMsg.style.color='#2a9d2a';saveMsg.textContent=t('saveApplied');
 };
 applyLang();
 
